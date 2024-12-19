@@ -4,7 +4,7 @@ print(sys.version)
 import mylibs.constants as constants
 from mylibs.ngsi_ld import geoquery_ngsi_point, retrieve_ngsi_type
 import time
-
+# from mylibs.onemap import search_one_map_location
 from landtransportsg import PublicTransport
 
 import json
@@ -147,11 +147,12 @@ async def get_destination(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         user_input = update.message.text
         loading_message = await update.message.reply_text("🔄 Fetching suggestions for your destination...")
         suggestions = google_maps.get_autocomplete_place(user_input)
-
+        # search_one_map_location(user_input)
         if suggestions:
+            filtered_suggestions = [s for s in suggestions if len(s['place_id']) <= 64]
             # Create a list of buttons with suggestions for the user to choose from
             keyboard = [[InlineKeyboardButton(suggestion['description'], callback_data=suggestion['place_id'])]
-            for suggestion in suggestions]
+            for suggestion in filtered_suggestions]
 
             # Add a 'Search another destination' button at the bottom
             keyboard.append([InlineKeyboardButton("🔍 Search another destination", callback_data="search_again")])
@@ -559,7 +560,7 @@ async def monitor_carpark_availability(update: Update, context: ContextTypes.DEF
     while True:
         # Continuously get updated live location
         live_location = context.user_data.get('live_location')
-
+        print(context.user_data, "USER DATA")
         # Debugging: print current lat/lng for testing
         print(Fore.GREEN + f"Monitoring live location: Latitude {live_location[0]}, Longitude {live_location[1]}")
 
@@ -1006,7 +1007,6 @@ def find_closest_three_carparks(nearest_carparks_list, dest_lat, dest_long, sele
 
     for carpark in nearest_carparks_list:
         carpark_dict = carpark.to_dict()
-        print(carpark_dict, "CARPARK DICTTTTTT")
         lat = carpark_dict["location"]["value"]["coordinates"][1]
         long = carpark_dict["location"]["value"]["coordinates"][0]
         distance = geodesic((dest_lat, dest_long), (lat, long)).km
@@ -1019,7 +1019,6 @@ def find_closest_three_carparks(nearest_carparks_list, dest_lat, dest_long, sele
                         closest_three_carparks.append(carpark_dict)
                     else:
                         farthest_carpark = max(closest_three_carparks, key=lambda x: x["distance"])
-                        # print("carpark_dict:", carpark_dict)
                         print("farthest_carpark:", farthest_carpark, "farthest_carpark distance:", farthest_carpark["distance"])
                         if farthest_carpark["distance"] > carpark_dict["distance"]:
                             closest_three_carparks.remove(farthest_carpark)
@@ -1209,12 +1208,7 @@ def aggregate_message(closest_three_carparks, selected_preference):
             print("Lowest Value Key:", lowest_value_key)
         cheapest_carpark_message = f"💸 *The cheapest carpark is:* {lowest_value_key} at {lowest_value} per 30 mins* \n\n"
         final_message = cheapest_carpark_message + carparks_message
-        print(cheapest_carpark_message, "CHEAPEST MESSAGE")
-        print(carparks_message, "CARPARKSK MESSAGE")
-        print(final_message, "FINAL MESSAGE")
         return final_message
-
-    print("Carpark Message from aggregate_message:", carparks_message)
 
     return carparks_message
 

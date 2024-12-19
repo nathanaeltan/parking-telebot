@@ -24,7 +24,7 @@ Carpark
 - Region (From LTA)
 - Location - Gprop
 - Price (Pending Terrence)
-- ParkingAvalibility - From SDM 
+- ParkingAvalibility - From SDM
 - ParkingChargeType - From SDM (Pending Terrence)
 - ParkingMaxAvalibility - From SDM (Info not avaliable)
 - DataSource - From SDM
@@ -50,14 +50,14 @@ def create_entities_in_broker(entities, batch_size=100):
         for i in range(0, len(entities), batch_size):
             chunk = entities[i:i+batch_size]  # Get a chunk of the specified batch size
             ret = client.upsert(chunk)  # Upsert the chunk
-            
+
             if ret:
                 count += len(ret.success)
                 if len(ret.errors)>0:
                     warnings.warn("Some entities have failed to upload")
                     failed += len(ret.errors)
                     #print(ret.errors)
-                
+
         print("Uploaded: ", count)
         print("Failed: ", failed)
         return (failed>0)
@@ -172,8 +172,7 @@ def geoquery_ngsi_point(
     geoquery = f"geometry={geometry}&georel={georel}&coordinates={encoded_coordinates}"
 
     # Construct the full URL
-    url = f"http://{broker_url}/api/broker/ngsi-ld/v1/entities/?type={input_type}&{geoquery}"
-
+    url = f"http://{broker_url}/api/broker/ngsi-ld/v1/entities/?type={input_type}&{geoquery}&limit=100"
     payload = {}
     headers = {
         "NGSILD-Tenant": broker_tenant,
