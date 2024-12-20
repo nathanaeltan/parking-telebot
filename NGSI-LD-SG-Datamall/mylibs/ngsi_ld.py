@@ -71,7 +71,11 @@ def update_entities_in_broker(entities):
         port_temporal=temporal_port,
     ) as client:
         ret = client.upsert(entities)
-    print("Update ", ret)
+
+    print("Update result: ", ret)
+    if hasattr(ret, 'errors') and ret.errors:
+        for error in ret.errors:
+            print("Error: ", error)
     return ret
 
 
@@ -86,8 +90,9 @@ def retrieve_ngsi_type(input_type: str):
             type=input_type, ctx=ctx
         )  # Query for all type of carpark
         print("Number of entities retrieved: ", len(entities))
-        for entity in entities:
-            print(entity.id)
+        # for entity in entities:
+        #     print(entity.id)
+
     return entities
 
     """
@@ -218,6 +223,17 @@ def delete_all_type(type):
             print("\n")
         else:
             print("Skipping - no entities to delete\n")
+
+def retrieve_entity_by_id(entity_id):
+    with Client(
+        hostname=broker_url,
+        port=broker_port,
+        tenant=broker_tenant,
+        port_temporal=temporal_port,
+    ) as client:
+        entity = client.get(entity_id)
+        client.query_generator()
+    return entity
 
 
 """
